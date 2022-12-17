@@ -24,15 +24,13 @@ Then, run:
 
 `go install github.com/ctrlcctrlv/minica2.go@latest`
 
-When using Go 1.11 or newer you don't need a $GOPATH and can instead do the
-following:
+If you prefer to compile manually:
 
-```
-cd /ANY/PATH
+```bash
+cd # $HOME/Workspace
 git clone https://github.com/ctrlcctrlv/minica2.go.git
-go build
-## or
-# go install
+cd minica2.go
+make install
 ```
 
 Mac OS users could alternatively use Homebrew: `brew install minica2`
