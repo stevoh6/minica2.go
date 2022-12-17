@@ -44,10 +44,10 @@ Mac OS users could alternatively use Homebrew: `brew install minica2`
 ```
 # Generate a root key and cert in minica2-key.pem, and minica2.pem, then
 # generate and sign an end-entity key and cert, storing them in ./foo.com/
-$ minica2 --domains foo.com
+$ minica2 --domain foo.com
 
 # Wildcard
-$ minica2 --domains '*.foo.com'
+$ minica2 --domain '*.foo.com'
 ```
 
 ## License
