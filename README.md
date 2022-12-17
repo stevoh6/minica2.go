@@ -1,5 +1,7 @@
 # `minica2` v1.0.0
 
+* © 2016–2022 Jacob Hoffman-Andrews, Fredrick R. Brennan &lt;copypaste@kittens.ph&gt;, and Minica(2) Project Authors
+
 Minica2 is a simple CA intended for use in situations where the CA operator
 also operates each host where a certificate will be used. It automatically
 generates both a key and a certificate when asked to produce a certificate.
@@ -19,7 +21,7 @@ will not overwrite existing keys or certificates.
 
 The certificate will have a validity of 2 years and 30 days.
 
-# Installation
+## Installation
 
 First, install the [Go tools](https://golang.org/dl/) and set up your `$GOPATH`.
 Then, run:
@@ -37,7 +39,7 @@ make install
 
 Mac OS users could alternatively use Homebrew: `brew install minica2`
 
-# Example usage
+## Example usage
 
 ```
 # Generate a root key and cert in minica2-key.pem, and minica2.pem, then
@@ -46,4 +48,31 @@ $ minica2 --domains foo.com
 
 # Wildcard
 $ minica2 --domains '*.foo.com'
+```
+
+## License
+
+```
+MIT License
+
+Copyright (c) 2016 Jacob Hoffman-Andrews
+Copyright (c) 2022 Fredrick R. Brennan <copypaste@kittens.ph>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 ```
