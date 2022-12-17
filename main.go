@@ -31,20 +31,26 @@ func main() {
 	}
 }
 
-type issuer struct {
+type Issuer struct {
 	key  crypto.Signer
 	cert *x509.Certificate
 }
 
-func getIssuer(keyFile, certFile string) (*issuer, error) {
+type Args struct {
+	caKey, caCert string
+	domains, ipAddresses string
+	org, iorg, iunit, icountry, ilocale, iaddress, ipostal ArgsArr
+}
+
+func getIssuer(args *Args, keyFile, certFile string) (*Issuer, error) {
 	keyContents, keyErr := ioutil.ReadFile(keyFile)
 	certContents, certErr := ioutil.ReadFile(certFile)
 	if os.IsNotExist(keyErr) && os.IsNotExist(certErr) {
-		err := makeIssuer(keyFile, certFile)
+		err := makeIssuer(args, keyFile, certFile)
 		if err != nil {
 			return nil, err
 		}
-		return getIssuer(keyFile, certFile)
+		return getIssuer(args, keyFile, certFile)
 	} else if keyErr != nil {
 		return nil, fmt.Errorf("%s (but %s exists)", keyErr, certFile)
 	} else if certErr != nil {
@@ -67,7 +73,7 @@ func getIssuer(keyFile, certFile string) (*issuer, error) {
 		return nil, fmt.Errorf("public key in CA certificate %s doesn't match private key in %s",
 			certFile, keyFile)
 	}
-	return &issuer{key, cert}, nil
+	return &Issuer{key, cert}, nil
 }
 
 func readPrivateKey(keyContents []byte) (crypto.Signer, error) {
@@ -90,12 +96,12 @@ func readCert(certContents []byte) (*x509.Certificate, error) {
 	return x509.ParseCertificate(block.Bytes)
 }
 
-func makeIssuer(keyFile, certFile string) error {
+func makeIssuer(args *Args, keyFile, certFile string) error {
 	key, err := makeKey(keyFile)
 	if err != nil {
 		return err
 	}
-	_, err = makeRootCert(key, certFile)
+	_, err = makeRootCert(args, key, certFile)
 	if err != nil {
 		return err
 	}
@@ -126,7 +132,7 @@ func makeKey(filename string) (*rsa.PrivateKey, error) {
 	return key, nil
 }
 
-func makeRootCert(key crypto.Signer, filename string) (*x509.Certificate, error) {
+func makeRootCert(args *Args, key crypto.Signer, filename string) (*x509.Certificate, error) {
 	serial, err := rand.Int(rand.Reader, big.NewInt(math.MaxInt64))
 	if err != nil {
 		return nil, err
@@ -135,10 +141,12 @@ func makeRootCert(key crypto.Signer, filename string) (*x509.Certificate, error)
 	if err != nil {
 		return nil, err
 	}
+	var issuer = args.parseIssuer()
+	if issuer.CommonName == "" {
+		issuer.CommonName = "minica root ca " + hex.EncodeToString(serial.Bytes()[:3])
+	}
 	template := &x509.Certificate{
-		Subject: pkix.Name{
-			CommonName: "minica root ca " + hex.EncodeToString(serial.Bytes()[:3]),
-		},
+		Subject: issuer,
 		SerialNumber: serial,
 		NotBefore:    time.Now(),
 		NotAfter:     time.Now().AddDate(100, 0, 0),
@@ -213,7 +221,7 @@ func calculateSKID(pubKey crypto.PublicKey) ([]byte, error) {
 	return skid[:], nil
 }
 
-func sign(iss *issuer, domains []string, ipAddresses []string) (*x509.Certificate, error) {
+func sign(iss *Issuer, domains []string, ipAddresses []string) (*x509.Certificate, error) {
 	var cn string
 	if len(domains) > 0 {
 		cn = domains[0]
@@ -284,11 +292,44 @@ func split(s string) (results []string) {
 	return nil
 }
 
+type ArgsArr struct {
+	a []string
+}
+
+func (arr *ArgsArr) sumFlagFunc(arg string) error {
+	arr.a = append(arr.a, arg)
+	return nil
+}
+
+func (args *Args) assignIssuerFlags() {
+	flag.Func("issuer", "Issuing organization common name", args.org.sumFlagFunc)
+	flag.Func("organization", "Issuing organization", args.iorg.sumFlagFunc)
+	flag.Func("unit", "Issuing unit of organization (e.g., IT)", args.iunit.sumFlagFunc)
+	flag.Func("country", "Issuer's country", args.icountry.sumFlagFunc)
+	flag.Func("locality", "Issuer's locality (i.e., city)", args.ilocale.sumFlagFunc)
+	flag.Func("address", "Issuer's address", args.iaddress.sumFlagFunc)
+	flag.Func("postal-code", "Issuer's postal code (in 🇺🇸 called a “ZIP” code)", args.ipostal.sumFlagFunc)
+}
+
+func (args *Args) parseIssuer() (pkix.Name) {
+	return pkix.Name{
+		CommonName: strings.Join(args.org.a, ","),
+		Organization: args.iorg.a,
+		OrganizationalUnit: args.iunit.a,
+		Country: args.icountry.a,
+		Locality: args.ilocale.a,
+		StreetAddress: args.iaddress.a,
+		PostalCode: args.ipostal.a,
+	}
+}
+
 func main2() error {
+	var args *Args = &Args{}
 	var caKey = flag.String("ca-key", "minica-key.pem", "Root private key filename, PEM encoded.")
 	var caCert = flag.String("ca-cert", "minica.pem", "Root certificate filename, PEM encoded.")
 	var domains = flag.String("domains", "", "Comma separated domain names to include as Server Alternative Names.")
 	var ipAddresses = flag.String("ip-addresses", "", "Comma separated IP addresses to include as Server Alternative Names.")
+	args.assignIssuerFlags()
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "Usage of %s:\n", os.Args[0])
 		fmt.Fprintf(os.Stderr, `
@@ -336,7 +377,7 @@ will not overwrite existing keys or certificates.
 			os.Exit(1)
 		}
 	}
-	issuer, err := getIssuer(*caKey, *caCert)
+	issuer, err := getIssuer(args, *caKey, *caCert)
 	if err != nil {
 		return err
 	}
