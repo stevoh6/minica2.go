@@ -12,6 +12,7 @@ import (
 
 type Args struct {
 	caKey, caCert *string
+	macValidity *bool
 	domains, ipAddresses ArgsArr
 	org, iorg, iunit, icountry, ilocale, iaddress, ipostal ArgsArr
 }
@@ -68,10 +69,15 @@ func (args *Args) assignTargetFlags() {
 	flag.Func("ip-address", "Comma separated IP addresses to include as Server Alternative Names.", args.ipAddresses.sumFlagFuncIP)
 }
 
+func (args *Args) assignBooleanFlags() {
+	args.macValidity = flag.Bool("mac-validity", false, "Make a valid certificate for macOS / iOS (2 yrs + 30 days validity)")
+}
+
 func (args *Args) assignFlags() {
 	args.assignStringFlags()
 	args.assignTargetFlags()
 	args.assignIssuerFlags()
+	args.assignBooleanFlags()
 }
 
 func (args *Args) parseIssuer() (pkix.Name) {

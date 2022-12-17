@@ -242,16 +242,18 @@ func sign(iss *Issuer, args *Args) (*x509.Certificate, error) {
 		},
 		SerialNumber: serial,
 		NotBefore:    time.Now(),
-		// Set the validity period to 2 years and 30 days, to satisfy the iOS and
-		// macOS requirements that all server certificates must have validity
-		// shorter than 825 days:
-		// https://derflounder.wordpress.com/2019/06/06/new-tls-security-requirements-for-ios-13-and-macos-catalina-10-15/
-		NotAfter: time.Now().AddDate(2, 0, 30),
 
 		KeyUsage:              x509.KeyUsageDigitalSignature | x509.KeyUsageKeyEncipherment,
 		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth, x509.ExtKeyUsageClientAuth},
 		BasicConstraintsValid: true,
 		IsCA:                  false,
+	}
+	if *args.macValidity {
+		// Set the validity period to 2 years and 30 days, to satisfy the iOS and
+		// macOS requirements that all server certificates must have validity
+		// shorter than 825 days:
+		// https://derflounder.wordpress.com/2019/06/06/new-tls-security-requirements-for-ios-13-and-macos-catalina-10-15/
+		template.NotAfter = time.Now().AddDate(2, 0, 30)
 	}
 	der, err := x509.CreateCertificate(rand.Reader, template, iss.cert, key.Public(), iss.key)
 	if err != nil {

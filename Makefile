@@ -15,6 +15,9 @@ minica2.go:
 minica2: minica2.go
 	mv $< $@
 
+README.md:
+	./$@.sh > $@
+
 .PHONY:
 install: minica2
 	install -d $(DESTDIR)$(PREFIX)/bin/

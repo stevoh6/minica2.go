@@ -87,6 +87,8 @@ will not overwrite existing keys or certificates.
     	Issuing organization common name
   -locality value
     	Issuer's locality (i.e., city)
+  -mac-validity
+    	Make a valid certificate for macOS / iOS (2 yrs + 30 days validity)
   -organization value
     	Issuing organization
   -postal-code value
