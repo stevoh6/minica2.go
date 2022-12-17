@@ -1,3 +1,5 @@
+# `minica2` v1.0.0
+
 Minica2 is a simple CA intended for use in situations where the CA operator
 also operates each host where a certificate will be used. It automatically
 generates both a key and a certificate when asked to produce a certificate.

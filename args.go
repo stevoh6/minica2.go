@@ -64,8 +64,8 @@ func (args *Args) assignStringFlags() {
 }
 
 func (args *Args) assignTargetFlags() {
-	flag.Func("domains", "Comma separated domain names to include as Server Alternative Names.", args.domains.sumFlagFuncDomain)
-	flag.Func("ip-addresses", "Comma separated IP addresses to include as Server Alternative Names.", args.ipAddresses.sumFlagFuncIP)
+	flag.Func("domain", "Comma separated domain names to include as Server Alternative Names.", args.domains.sumFlagFuncDomain)
+	flag.Func("ip-address", "Comma separated IP addresses to include as Server Alternative Names.", args.ipAddresses.sumFlagFuncIP)
 }
 
 func (args *Args) assignFlags() {
