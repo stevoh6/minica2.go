@@ -1,6 +1,7 @@
 #!/usr/bin/env -S gmake -f
 
 GOBIN := minica2
+GOFLAGS := -ldflags '-X main.date=$(shell date +%Y-%m-%d)'
 VERSION := 1.0.1
 
 ifeq ($(PREFIX),)
@@ -13,7 +14,7 @@ all: $(GOBIN)
 
 $(GOBIN).go:
 	[ -f $@ ] && rm $@ || true;\
-	go build
+	go build $(GOFLAGS)
 
 $(GOBIN): $(GOBIN).go
 	mv $< $@
@@ -33,11 +34,11 @@ dist:
 
 .PHONY:
 bdist:
-	GOOS=darwin GOARCH=amd64 go build -o dist/$(GOBIN).v$(VERSION).x86_64.darwin
-	GOOS=linux GOARCH=amd64 go build -o dist/$(GOBIN).v$(VERSION).x86_64.linux
-	GOOS=windows GOARCH=amd64 go build -o dist/$(GOBIN).v$(VERSION).x86_64.windows.exe
-	GOOS=linux GOARCH=386 go build -o dist/$(GOBIN).v$(VERSION).x86.linux
-	GOOS=windows GOARCH=386 go build -o dist/$(GOBIN).v$(VERSION).x86.windows.exe
-	GOOS=linux GOARCH=arm64 go build -o dist/$(GOBIN).v$(VERSION).arm64.linux
-	GOOS=darwin GOARCH=arm64 go build -o dist/$(GOBIN).v$(VERSION).arm64.darwin
-	GOOS=linux GOARCH=arm go build -o dist/$(GOBIN).v$(VERSION).arm.linux
+	GOOS=darwin GOARCH=amd64 go build -o dist/$(GOBIN).v$(VERSION).x86_64.darwin $(GOFLAGS)
+	GOOS=linux GOARCH=amd64 go build -o dist/$(GOBIN).v$(VERSION).x86_64.linux $(GOFLAGS)
+	GOOS=windows GOARCH=amd64 go build -o dist/$(GOBIN).v$(VERSION).x86_64.windows.exe $(GOFLAGS)
+	GOOS=linux GOARCH=386 go build -o dist/$(GOBIN).v$(VERSION).x86.linux $(GOFLAGS)
+	GOOS=windows GOARCH=386 go build -o dist/$(GOBIN).v$(VERSION).x86.windows.exe $(GOFLAGS)
+	GOOS=linux GOARCH=arm64 go build -o dist/$(GOBIN).v$(VERSION).arm64.linux $(GOFLAGS)
+	GOOS=darwin GOARCH=arm64 go build -o dist/$(GOBIN).v$(VERSION).arm64.darwin $(GOFLAGS)
+	GOOS=linux GOARCH=arm go build -o dist/$(GOBIN).v$(VERSION).arm.linux $(GOFLAGS)

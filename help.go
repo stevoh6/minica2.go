@@ -40,8 +40,9 @@ AUTHORS
 
 Copyright (c) 2016 Jacob Hoffman-Andrews
 Copyright (c) 2022 Fredrick R. Brennan <copypaste@kittens.ph>
-
 `)
+	fmt.Fprintf(os.Stderr, "version %v (built on %v)\n\n", version, date)
+
 	fmt.Fprintf(os.Stderr, "OPTIONS\n\nSTRINGS:\n")
 	flags.sflag.PrintDefaults()
 	fmt.Fprintf(os.Stderr, "\n")

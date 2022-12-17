@@ -4,6 +4,9 @@ import (
 	"log"
 )
 
+var version string = "DEV"
+var date string
+
 func main() {
 	var args *Args = &Args{}
 	args.parse()
