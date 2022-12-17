@@ -37,8 +37,6 @@ cd minica2.go
 make install
 ```
 
-Mac OS users could alternatively use Homebrew: `brew install minica2`
-
 ## Example usage
 
 ```
