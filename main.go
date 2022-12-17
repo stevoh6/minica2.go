@@ -19,9 +19,9 @@ import (
 	"math/big"
 	"net"
 	"os"
-	"regexp"
 	"strings"
 	"time"
+
 )
 
 func main() {
@@ -36,21 +36,16 @@ type Issuer struct {
 	cert *x509.Certificate
 }
 
-type Args struct {
-	caKey, caCert string
-	domains, ipAddresses string
-	org, iorg, iunit, icountry, ilocale, iaddress, ipostal ArgsArr
-}
-
-func getIssuer(args *Args, keyFile, certFile string) (*Issuer, error) {
+func getIssuer(args *Args) (*Issuer, error) {
+	keyFile, certFile := *args.caKey, *args.caCert
 	keyContents, keyErr := ioutil.ReadFile(keyFile)
 	certContents, certErr := ioutil.ReadFile(certFile)
 	if os.IsNotExist(keyErr) && os.IsNotExist(certErr) {
-		err := makeIssuer(args, keyFile, certFile)
+		err := makeIssuer(args)
 		if err != nil {
 			return nil, err
 		}
-		return getIssuer(args, keyFile, certFile)
+		return getIssuer(args)
 	} else if keyErr != nil {
 		return nil, fmt.Errorf("%s (but %s exists)", keyErr, certFile)
 	} else if certErr != nil {
@@ -96,7 +91,8 @@ func readCert(certContents []byte) (*x509.Certificate, error) {
 	return x509.ParseCertificate(block.Bytes)
 }
 
-func makeIssuer(args *Args, keyFile, certFile string) error {
+func makeIssuer(args *Args) error {
+	keyFile, certFile := *args.caKey, *args.caCert
 	key, err := makeKey(keyFile)
 	if err != nil {
 		return err
@@ -285,51 +281,9 @@ func sign(iss *Issuer, domains []string, ipAddresses []string) (*x509.Certificat
 	return x509.ParseCertificate(der)
 }
 
-func split(s string) (results []string) {
-	if len(s) > 0 {
-		return strings.Split(s, ",")
-	}
-	return nil
-}
-
-type ArgsArr struct {
-	a []string
-}
-
-func (arr *ArgsArr) sumFlagFunc(arg string) error {
-	arr.a = append(arr.a, arg)
-	return nil
-}
-
-func (args *Args) assignIssuerFlags() {
-	flag.Func("issuer", "Issuing organization common name", args.org.sumFlagFunc)
-	flag.Func("organization", "Issuing organization", args.iorg.sumFlagFunc)
-	flag.Func("unit", "Issuing unit of organization (e.g., IT)", args.iunit.sumFlagFunc)
-	flag.Func("country", "Issuer's country", args.icountry.sumFlagFunc)
-	flag.Func("locality", "Issuer's locality (i.e., city)", args.ilocale.sumFlagFunc)
-	flag.Func("address", "Issuer's address", args.iaddress.sumFlagFunc)
-	flag.Func("postal-code", "Issuer's postal code (in 🇺🇸 called a “ZIP” code)", args.ipostal.sumFlagFunc)
-}
-
-func (args *Args) parseIssuer() (pkix.Name) {
-	return pkix.Name{
-		CommonName: strings.Join(args.org.a, ","),
-		Organization: args.iorg.a,
-		OrganizationalUnit: args.iunit.a,
-		Country: args.icountry.a,
-		Locality: args.ilocale.a,
-		StreetAddress: args.iaddress.a,
-		PostalCode: args.ipostal.a,
-	}
-}
-
 func main2() error {
 	var args *Args = &Args{}
-	var caKey = flag.String("ca-key", "minica-key.pem", "Root private key filename, PEM encoded.")
-	var caCert = flag.String("ca-cert", "minica.pem", "Root certificate filename, PEM encoded.")
-	var domains = flag.String("domains", "", "Comma separated domain names to include as Server Alternative Names.")
-	var ipAddresses = flag.String("ip-addresses", "", "Comma separated IP addresses to include as Server Alternative Names.")
-	args.assignIssuerFlags()
+	args.assignFlags()
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "Usage of %s:\n", os.Args[0])
 		fmt.Fprintf(os.Stderr, `
@@ -354,7 +308,9 @@ will not overwrite existing keys or certificates.
 		flag.PrintDefaults()
 	}
 	flag.Parse()
-	if *domains == "" && *ipAddresses == "" {
+	var domains = args.domains.a
+	var ipAddresses = args.ipAddresses.a
+	if len(domains) == 0 && len(ipAddresses) == 0 {
 		flag.Usage()
 		os.Exit(1)
 	}
@@ -362,25 +318,10 @@ will not overwrite existing keys or certificates.
 		fmt.Printf("Extra arguments: %s (maybe there are spaces in your domain list?)\n", flag.Args())
 		os.Exit(1)
 	}
-	domainSlice := split(*domains)
-	domainRe := regexp.MustCompile("^[A-Za-z0-9.*-]+$")
-	for _, d := range domainSlice {
-		if !domainRe.MatchString(d) {
-			fmt.Printf("Invalid domain name %q\n", d)
-			os.Exit(1)
-		}
-	}
-	ipSlice := split(*ipAddresses)
-	for _, ip := range ipSlice {
-		if net.ParseIP(ip) == nil {
-			fmt.Printf("Invalid IP address %q\n", ip)
-			os.Exit(1)
-		}
-	}
-	issuer, err := getIssuer(args, *caKey, *caCert)
+	issuer, err := getIssuer(args)
 	if err != nil {
 		return err
 	}
-	_, err = sign(issuer, domainSlice, ipSlice)
+	_, err = sign(issuer, domains, ipAddresses)
 	return err
 }
