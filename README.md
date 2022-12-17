@@ -1,4 +1,4 @@
-# `minica2` v1.0.0
+# `minica2` v1.0.1
 
 * © 2016–2022 Jacob Hoffman-Andrews, Fredrick R. Brennan &lt;copypaste@kittens.ph&gt;, and Minica(2) Project Authors
 
