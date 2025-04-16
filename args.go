@@ -70,8 +70,8 @@ func (args *Args) assignStringFlags() (flag.FlagSet) {
 
 func (args *Args) assignTargetFlags() (flag.FlagSet) {
 	var tflag = flag.NewFlagSet("target", flag.ExitOnError)
-	tflag.Func("domain", "Comma separated domain names to include as Server Alternative Names.", args.domains.sumFlagFuncDomain)
-	tflag.Func("ip-address", "Comma separated IP addresses to include as Server Alternative Names.", args.ipAddresses.sumFlagFuncIP)
+	tflag.Func("domains", "Comma separated domain names to include as Server Alternative Names.", args.domains.sumFlagFuncDomain)
+	tflag.Func("ip-addresses", "Comma separated IP addresses to include as Server Alternative Names.", args.ipAddresses.sumFlagFuncIP)
 	return *tflag
 }
 
